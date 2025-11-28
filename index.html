@@ -1,92 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visión IA en Vivo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    body {
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    header h1 {
-      font-size: 1.8em;
-      margin-bottom: 10px;
-    }
-
-    header p {
-      font-size: 1em;
-      color: #ccc;
-    }
-
-    .video-container {
-      width: 100%;
-      max-width: 600px;
-      border: 3px solid #00ffc3;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 255, 195, 0.3);
-    }
-
-    video {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    footer {
-      margin-top: 30px;
-      font-size: 0.9em;
-      color: #aaa;
-      text-align: center;
+    body { font-family: 'Inter', sans-serif; }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
   </style>
 </head>
-<body>
-  <header>
-    <h1>Visión IA en Vivo</h1>
-    <p>Captura de cámara desde tu dispositivo móvil</p>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white min-h-screen flex flex-col items-center justify-start p-4">
+
+  <header class="text-center mb-6">
+    <h1 class="text-3xl font-semibold">Visión IA en Vivo</h1>
+    <p class="text-sm text-slate-300 mt-1">Captura de cámara desde tu dispositivo móvil</p>
   </header>
 
-  <div class="video-container">
-    <video id="video" autoplay playsinline></video>
+  <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md">
+    <video id="video" autoplay playsinline class="w-full h-auto hidden"></video>
+    <canvas id="canvas" class="w-full h-auto hidden"></canvas>
   </div>
 
-  <footer>
+  <div class="mt-6 flex gap-4">
+    <button id="btnCamara" class="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+      Activar cámara
+    </button>
+    <button id="btnCapturar" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 hidden">
+      Capturar imagen
+    </button>
+  </div>
+
+  <footer class="mt-8 text-xs text-slate-400 text-center">
     Proyecto de reconocimiento de objetos con IA – HBOC Sacaca
   </footer>
 
   <script>
-    async function iniciarCamara() {
+    let stream;
+
+    document.getElementById("btnCamara").addEventListener("click", async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        document.getElementById('video').srcObject = stream;
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const video = document.getElementById("video");
+        video.srcObject = stream;
+        video.classList.remove("hidden");
+        document.getElementById("btnCapturar").classList.remove("hidden");
+        document.getElementById("btnCamara").textContent = "Cámara activada";
+        document.getElementById("btnCamara").disabled = true;
       } catch (err) {
         alert("Error al acceder a la cámara: " + err.message);
-        console.error("Error al acceder a la cámara:", err);
+        console.error(err);
       }
-    }
+    });
 
-    iniciarCamara();
+    document.getElementById("btnCapturar").addEventListener("click", () => {
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const context = canvas.getContext("2d");
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.classList.remove("hidden");
+    });
   </script>
 </body>
 </html>
