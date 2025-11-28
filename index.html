@@ -9,58 +9,95 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     .glass {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white min-h-screen flex flex-col items-center justify-start p-4">
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white min-h-screen flex flex-col items-center justify-start p-6">
 
-  <header class="text-center mb-6">
-    <h1 class="text-3xl font-semibold">Visión IA en Vivo</h1>
-    <p class="text-sm text-slate-300 mt-1">Captura de cámara trasera desde tu dispositivo móvil</p>
+  <!-- Header -->
+  <header class="text-center mb-8">
+    <h1 class="text-4xl font-bold text-cyan-400 drop-shadow-lg">Visión IA en Vivo</h1>
+    <p class="text-sm text-slate-300 mt-2">Transmisión de cámara trasera con IA</p>
   </header>
 
+  <!-- Video Container -->
   <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md">
-    <video id="video" autoplay playsinline class="w-full h-auto hidden"></video>
-    <canvas id="canvas" class="w-full h-auto hidden"></canvas>
+    <video id="video" autoplay playsinline class="w-full max-h-[400px] object-contain hidden"></video>
+    <canvas id="canvas" class="w-full max-h-[400px] object-contain hidden"></canvas>
   </div>
 
-  <div class="mt-6 flex gap-4">
-    <button id="btnCamara" class="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
-      Activar cámara trasera
+  <!-- Buttons -->
+  <div class="mt-8 flex flex-col gap-4 w-full max-w-md">
+    <button id="btnWifi" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
+      📡 Transmitir por Wi‑Fi
     </button>
-    <button id="btnCapturar" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 hidden">
-      Capturar imagen
+    <button id="btnCapturar" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
+      📷 Capturar imagen
     </button>
   </div>
 
-  <footer class="mt-8 text-xs text-slate-400 text-center">
+  <!-- Modal -->
+  <div id="modalWifi" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="glass rounded-xl p-6 w-80 text-center">
+      <h2 class="text-xl font-bold mb-4 text-cyan-400">Conexión detectada</h2>
+      <p id="wifiInfo" class="text-slate-200 mb-6">Detectando red...</p>
+      <button id="btnActivarCamara" class="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition">
+        Activar cámara trasera
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-10 text-xs text-slate-400 text-center">
     Proyecto de reconocimiento de objetos con IA – HBOC Sacaca
   </footer>
 
   <script>
     let stream;
 
-    document.getElementById("btnCamara").addEventListener("click", async () => {
+    // Abrir modal al presionar "Transmitir por Wi-Fi"
+    document.getElementById("btnWifi").addEventListener("click", () => {
+      document.getElementById("modalWifi").classList.remove("hidden");
+
+      // Detectar tipo de conexión
+      if (navigator.connection) {
+        const tipo = navigator.connection.type || navigator.connection.effectiveType;
+        document.getElementById("wifiInfo").textContent =
+          tipo.includes("wifi") ? "Estás conectado vía Wi‑Fi" : "No estás en Wi‑Fi, conexión: " + tipo;
+      } else {
+        document.getElementById("wifiInfo").textContent = "No se pudo detectar la conexión";
+      }
+    });
+
+    // Activar cámara trasera desde modal
+    document.getElementById("btnActivarCamara").addEventListener("click", async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: "environment" } },
+        const constraints = {
+          video: {
+            facingMode: { exact: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            advanced: [{ focusMode: "continuous" }]
+          },
           audio: false
-        });
+        };
+
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         const video = document.getElementById("video");
         video.srcObject = stream;
         video.classList.remove("hidden");
         document.getElementById("btnCapturar").classList.remove("hidden");
-        document.getElementById("btnCamara").textContent = "Cámara activada";
-        document.getElementById("btnCamara").disabled = true;
+        document.getElementById("modalWifi").classList.add("hidden");
       } catch (err) {
         alert("Error al acceder a la cámara: " + err.message);
         console.error(err);
       }
     });
 
+    // Capturar imagen
     document.getElementById("btnCapturar").addEventListener("click", () => {
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
