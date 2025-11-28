@@ -31,7 +31,7 @@
   <!-- Buttons -->
   <div class="mt-8 flex flex-col gap-4 w-full max-w-md">
     <button id="btnTransmitir" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
-      📡 Transmitir video
+      📡 Transmitir video...
     </button>
   </div>
 
@@ -43,17 +43,26 @@
   <script>
     let stream;
     let socket;
+    let transmitiendo = false;
 
     document.getElementById("btnTransmitir").addEventListener("click", async () => {
+      if (transmitiendo) return; // evita múltiples transmisiones
+      transmitiendo = true;
+
       try {
-        // Conectar WebSocket al servidor (cambia la IP/puerto según tu PC o backend)
+        // Conectar WebSocket al servidor (usa tu IP local)
         socket = new WebSocket("ws://192.168.1.160:5000");
 
         socket.onopen = () => {
           console.log("Conectado al servidor WebSocket");
+          const btn = document.getElementById("btnTransmitir");
+          btn.textContent = "✅ Transmitiendo...";
+          btn.classList.add("opacity-60");
+          btn.disabled = true;
         };
 
         socket.onerror = (err) => {
+          alert("No se pudo conectar al servidor WebSocket. Verifica la IP y que el servidor esté activo.");
           console.error("Error en WebSocket:", err);
         };
 
