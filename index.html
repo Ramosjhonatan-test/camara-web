@@ -2,25 +2,90 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Captura de cámara</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visión IA en Vivo</title>
   <style>
-    body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111; }
-    video { width: 90%; max-width: 600px; border: 3px solid #00ffcc; border-radius: 10px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1em;
+      color: #ccc;
+    }
+
+    .video-container {
+      width: 100%;
+      max-width: 600px;
+      border: 3px solid #00ffc3;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 255, 195, 0.3);
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #aaa;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline></video>
+  <header>
+    <h1>Visión IA en Vivo</h1>
+    <p>Captura de cámara desde tu dispositivo móvil</p>
+  </header>
+
+  <div class="video-container">
+    <video id="video" autoplay playsinline></video>
+  </div>
+
+  <footer>
+    Proyecto de reconocimiento de objetos con IA – HBOC Sacaca
+  </footer>
 
   <script>
     async function iniciarCamara() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        const video = document.getElementById('video');
-        video.srcObject = stream;
+        document.getElementById('video').srcObject = stream;
       } catch (err) {
+        alert("Error al acceder a la cámara: " + err.message);
         console.error("Error al acceder a la cámara:", err);
       }
     }
+
     iniciarCamara();
   </script>
 </body>
