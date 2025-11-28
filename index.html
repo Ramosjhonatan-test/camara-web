@@ -47,7 +47,7 @@
     document.getElementById("btnTransmitir").addEventListener("click", async () => {
       try {
         // Conectar WebSocket al servidor (cambia la IP/puerto según tu PC o backend)
-        socket = new WebSocket("ws://192.168.1.100:5000"); // ejemplo LAN
+        socket = new WebSocket("ws://192.168.1.160:5000");
 
         socket.onopen = () => {
           console.log("Conectado al servidor WebSocket");
