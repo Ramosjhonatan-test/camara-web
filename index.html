@@ -22,6 +22,14 @@
     <p class="text-sm text-slate-300 mt-1">Captura de cámara desde tu dispositivo móvil</p>
   </header>
 
+  <div class="mb-4">
+    <label for="camaraSelect" class="text-sm text-slate-300 mr-2">Seleccionar cámara:</label>
+    <select id="camaraSelect" class="bg-slate-700 text-white px-3 py-1 rounded">
+      <option value="environment">Trasera</option>
+      <option value="user">Frontal</option>
+    </select>
+  </div>
+
   <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md">
     <video id="video" autoplay playsinline class="w-full h-auto hidden"></video>
     <canvas id="canvas" class="w-full h-auto hidden"></canvas>
@@ -44,8 +52,12 @@
     let stream;
 
     document.getElementById("btnCamara").addEventListener("click", async () => {
+      const modo = document.getElementById("camaraSelect").value;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: modo } },
+          audio: false
+        });
         const video = document.getElementById("video");
         video.srcObject = stream;
         video.classList.remove("hidden");
@@ -72,3 +84,4 @@
   </script>
 </body>
 </html>
+
