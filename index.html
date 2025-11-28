@@ -20,7 +20,7 @@
   <!-- Header -->
   <header class="text-center mb-8">
     <h1 class="text-4xl font-bold text-cyan-400 drop-shadow-lg">Visión IA en Vivo</h1>
-    <p class="text-sm text-slate-300 mt-2">Transmisión de cámara trasera en tiempo real</p>
+    <p class="text-sm text-slate-300 mt-2">Cámara trasera y transmisión en tiempo real</p>
   </header>
 
   <!-- Video Container -->
@@ -30,8 +30,12 @@
 
   <!-- Buttons -->
   <div class="mt-8 flex flex-col gap-4 w-full max-w-md">
-    <button id="btnTransmitir" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
-      📡 Transmitir video...
+    <button id="btnAbrirCamara" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
+      📷 Abrir cámara
+    </button>
+
+    <button id="btnTransmitir" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
+      📡 Transmitir
     </button>
   </div>
 
@@ -45,12 +49,44 @@
     let socket;
     let transmitiendo = false;
 
+    // Abrir cámara
+    document.getElementById("btnAbrirCamara").addEventListener("click", async () => {
+      try {
+        const constraints = {
+          video: {
+            facingMode: { ideal: "environment" }, // más flexible que exact
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        };
+
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = document.getElementById("video");
+        video.srcObject = stream;
+        video.classList.remove("hidden");
+
+        // Mostrar botón de transmitir
+        document.getElementById("btnTransmitir").classList.remove("hidden");
+
+        // Cambiar estado del botón abrir cámara
+        const btn = document.getElementById("btnAbrirCamara");
+        btn.textContent = "✅ Cámara abierta";
+        btn.classList.add("opacity-60");
+        btn.disabled = true;
+
+      } catch (err) {
+        alert("Error al acceder a la cámara: " + err.message);
+        console.error(err);
+      }
+    });
+
+    // Transmitir video
     document.getElementById("btnTransmitir").addEventListener("click", async () => {
-      if (transmitiendo) return; // evita múltiples transmisiones
+      if (transmitiendo) return;
       transmitiendo = true;
 
       try {
-        // Conectar WebSocket al servidor (usa tu IP local)
         socket = new WebSocket("ws://192.168.1.160:5000");
 
         socket.onopen = () => {
@@ -66,26 +102,10 @@
           console.error("Error en WebSocket:", err);
         };
 
-        // Activar cámara trasera
-        const constraints = {
-          video: {
-            facingMode: { exact: "environment" },
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          },
-          audio: false
-        };
-
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
         const video = document.getElementById("video");
-        video.srcObject = stream;
-        video.classList.remove("hidden");
-
-        // Crear canvas para extraer frames
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        // Enviar frames periódicamente
         setInterval(() => {
           if (socket.readyState === WebSocket.OPEN) {
             canvas.width = video.videoWidth;
@@ -94,13 +114,14 @@
 
             canvas.toBlob(blob => {
               if (blob) {
-                socket.send(blob); // envía el frame como binario
+                socket.send(blob);
               }
-            }, "image/jpeg", 0.7); // calidad 70%
+            }, "image/jpeg", 0.7);
           }
         }, 200); // cada 200ms ≈ 5 fps
+
       } catch (err) {
-        alert("Error al acceder a la cámara: " + err.message);
+        alert("Error al transmitir: " + err.message);
         console.error(err);
       }
     });
