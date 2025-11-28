@@ -19,16 +19,8 @@
 
   <header class="text-center mb-6">
     <h1 class="text-3xl font-semibold">Visión IA en Vivo</h1>
-    <p class="text-sm text-slate-300 mt-1">Captura de cámara desde tu dispositivo móvil</p>
+    <p class="text-sm text-slate-300 mt-1">Captura de cámara trasera desde tu dispositivo móvil</p>
   </header>
-
-  <div class="mb-4">
-    <label for="camaraSelect" class="text-sm text-slate-300 mr-2">Seleccionar cámara:</label>
-    <select id="camaraSelect" class="bg-slate-700 text-white px-3 py-1 rounded">
-      <option value="environment">Trasera</option>
-      <option value="user">Frontal</option>
-    </select>
-  </div>
 
   <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md">
     <video id="video" autoplay playsinline class="w-full h-auto hidden"></video>
@@ -37,7 +29,7 @@
 
   <div class="mt-6 flex gap-4">
     <button id="btnCamara" class="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
-      Activar cámara
+      Activar cámara trasera
     </button>
     <button id="btnCapturar" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 hidden">
       Capturar imagen
@@ -52,10 +44,9 @@
     let stream;
 
     document.getElementById("btnCamara").addEventListener("click", async () => {
-      const modo = document.getElementById("camaraSelect").value;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: modo } },
+          video: { facingMode: { exact: "environment" } },
           audio: false
         });
         const video = document.getElementById("video");
@@ -84,4 +75,3 @@
   </script>
 </body>
 </html>
-
