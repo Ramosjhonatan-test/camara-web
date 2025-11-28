@@ -19,7 +19,7 @@
 
   <header class="text-center mb-6">
     <h1 class="text-3xl font-semibold">Visión IA en Vivo</h1>
-    <p class="text-sm text-slate-300 mt-1">Captura de cámara trasera desde tu dispositivo móvil</p>
+    <p class="text-sm text-slate-300 mt-1">Captura de cámara trasera con enfoque automático</p>
   </header>
 
   <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md">
@@ -45,10 +45,21 @@
 
     document.getElementById("btnCamara").addEventListener("click", async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: "environment" } },
+        const constraints = {
+          video: {
+            facingMode: { exact: "environment" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            advanced: [
+              { focusMode: "continuous" },
+              { exposureMode: "continuous" },
+              { whiteBalanceMode: "continuous" }
+            ]
+          },
           audio: false
-        });
+        };
+
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         const video = document.getElementById("video");
         video.srcObject = stream;
         video.classList.remove("hidden");
