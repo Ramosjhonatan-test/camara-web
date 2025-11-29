@@ -28,21 +28,14 @@
     <video id="video" autoplay playsinline class="w-full max-h-[400px] object-contain hidden"></video>
   </div>
 
-  <!-- Estado -->
-  <div id="status" class="mt-4 text-center text-sm text-slate-300"></div>
-
   <!-- Buttons -->
   <div class="mt-8 flex flex-col gap-4 w-full max-w-md">
     <button id="btnAbrirCamara" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
-      📷 Abrir cámara
+      📷 Abrir cámara....
     </button>
 
     <button id="btnTransmitir" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
       📡 Transmitir
-    </button>
-
-    <button id="btnDetener" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
-      ⏹ Detener
     </button>
   </div>
 
@@ -55,16 +48,13 @@
     let stream;
     let socket;
     let transmitiendo = false;
-    let intervalId;
-
-    const status = document.getElementById("status");
 
     // Abrir cámara
     document.getElementById("btnAbrirCamara").addEventListener("click", async () => {
       try {
         const constraints = {
           video: {
-            facingMode: { ideal: "environment" },
+            facingMode: { ideal: "environment" }, // más flexible que exact
             width: { ideal: 640 },
             height: { ideal: 480 }
           },
@@ -76,16 +66,17 @@
         video.srcObject = stream;
         video.classList.remove("hidden");
 
+        // Mostrar botón de transmitir
         document.getElementById("btnTransmitir").classList.remove("hidden");
 
+        // Cambiar estado del botón abrir cámara
         const btn = document.getElementById("btnAbrirCamara");
         btn.textContent = "✅ Cámara abierta";
         btn.classList.add("opacity-60");
         btn.disabled = true;
 
-        status.textContent = "Cámara lista.";
       } catch (err) {
-        status.textContent = "Error al acceder a la cámara.";
+        alert("Error al acceder a la cámara: " + err.message);
         console.error(err);
       }
     });
@@ -98,28 +89,23 @@
       try {
         socket = new WebSocket("wss://vision-ia-server.onrender.com/ws");
         socket.onopen = () => {
-          status.textContent = "✅ Transmitiendo...";
+          console.log("Conectado al servidor WebSocket");
           const btn = document.getElementById("btnTransmitir");
+          btn.textContent = "✅ Transmitiendo...";
           btn.classList.add("opacity-60");
           btn.disabled = true;
-          document.getElementById("btnDetener").classList.remove("hidden");
         };
 
         socket.onerror = (err) => {
-          status.textContent = "❌ Error de conexión al servidor.";
+          alert("No se pudo conectar al servidor WebSocket. Verifica la IP y que el servidor esté activo.");
           console.error("Error en WebSocket:", err);
-        };
-
-        socket.onclose = () => {
-          status.textContent = "🔌 Conexión cerrada.";
-          detenerTransmision();
         };
 
         const video = document.getElementById("video");
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        intervalId = setInterval(() => {
+        setInterval(() => {
           if (socket.readyState === WebSocket.OPEN) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -129,25 +115,15 @@
               if (blob) {
                 socket.send(blob);
               }
-            }, "image/jpeg", 0.75);
+            }, "image/jpeg", 0.7);
           }
-        }, 100); // ~10 fps
+        }, 200); // cada 200ms ≈ 5 fps
+
       } catch (err) {
-        status.textContent = "Error al transmitir.";
+        alert("Error al transmitir: " + err.message);
         console.error(err);
       }
     });
-
-    // Detener transmisión
-    function detenerTransmision() {
-      if (intervalId) clearInterval(intervalId);
-      if (socket && socket.readyState === WebSocket.OPEN) socket.close();
-      transmitiendo = false;
-      document.getElementById("btnDetener").classList.add("hidden");
-      status.textContent = "Transmisión detenida.";
-    }
-
-    document.getElementById("btnDetener").addEventListener("click", detenerTransmision);
   </script>
 </body>
 </html>
