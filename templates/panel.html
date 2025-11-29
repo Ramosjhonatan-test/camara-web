@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>📡 Transmisión en Vivo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
+
+  <!-- Encabezado -->
+  <header class="w-full bg-black/70 border-b-4 border-cyan-400 py-6 text-center shadow-lg">
+    <h1 class="text-3xl md:text-4xl font-bold text-cyan-400 drop-shadow-lg">
+      🎥 Panel de Transmisión en Vivo
+    </h1>
+  </header>
+
+  <!-- Contenedor del video -->
+  <main class="flex-1 flex items-center justify-center w-full">
+    <div class="p-4 w-full max-w-md text-center">
+      <!-- Imagen MJPEG -->
+      <img id="video"
+           src="https://vision-ia-server.onrender.com/stream"
+           alt="Transmisión en vivo"
+           class="rounded-xl border-4 border-cyan-400 shadow-2xl w-full max-h-[400px] bg-black hidden">
+
+      <!-- Mensaje OFFLINE -->
+      <div id="offlineMsg" class="text-red-500 text-xl font-bold mt-4">
+        🔴 OFFLINE – No hay transmisión disponible
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full bg-black/60 py-4 text-center text-gray-400 text-sm border-t border-gray-700">
+    Powered by <span class="text-cyan-400 font-semibold">Render</span> | Proyecto IA Streaming
+  </footer>
+
+  <script>
+    const video = document.getElementById("video");
+    const offlineMsg = document.getElementById("offlineMsg");
+
+    function checkStream() {
+      const testImg = new Image();
+      testImg.src = video.src + "?t=" + Date.now(); // evitar cache
+      let timer = setTimeout(() => {
+        video.classList.add("hidden");
+        offlineMsg.classList.remove("hidden");
+      }, 2000);
+
+      testImg.onload = () => {
+        clearTimeout(timer);
+        video.classList.remove("hidden");
+        offlineMsg.classList.add("hidden");
+      };
+      testImg.onerror = () => {
+        clearTimeout(timer);
+        video.classList.add("hidden");
+        offlineMsg.classList.remove("hidden");
+      };
+    }
+
+    setInterval(checkStream, 3000);
+    checkStream();
+  </script>
+</body>
+</html>
