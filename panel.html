@@ -2,33 +2,33 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel de Transmisión en Vivo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #222;
-      padding: 15px;
-      font-size: 1.5em;
-      border-bottom: 2px solid #444;
-    }
-    #video {
-      max-width: 95%;
-      margin-top: 20px;
-      border: 3px solid #444;
-      border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.7);
-    }
-  </style>
+  <title>📡 Transmisión en Vivo</title>
+  <!-- Importar Tailwind desde CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header>📡 Panel de Transmisión en Vivo</header>
-  <img id="video" src="https://vision-ia-server.onrender.com/stream" alt="Transmisión en vivo">
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
+
+  <!-- Encabezado -->
+  <header class="w-full bg-black/70 border-b-4 border-cyan-400 py-6 text-center shadow-lg">
+    <h1 class="text-3xl md:text-4xl font-bold text-cyan-400 drop-shadow-lg">
+      🎥 Panel de Transmisión en Vivo
+    </h1>
+  </header>
+
+  <!-- Contenedor del video -->
+  <main class="flex-1 flex items-center justify-center w-full">
+    <div class="p-4">
+      <img id="video" 
+           src="https://vision-ia-server.onrender.com/stream" 
+           alt="Transmisión en vivo"
+           class="rounded-xl border-4 border-cyan-400 shadow-2xl max-w-4xl w-full transform transition hover:scale-105 hover:shadow-cyan-500/50">
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full bg-black/60 py-4 text-center text-gray-400 text-sm border-t border-gray-700">
+    Powered by <span class="text-cyan-400 font-semibold">Render</span> & <span class="text-cyan-400 font-semibold">GitHub Pages</span> | Proyecto IA Streaming
+  </footer>
+
 </body>
 </html>
