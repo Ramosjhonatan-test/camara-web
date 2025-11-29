@@ -19,6 +19,7 @@ async def recibir_video(websocket):
                 nombre = f"{FRAME_DIR}/frame_{contador:04d}.jpg"
                 with open(nombre, "wb") as f:
                     f.write(mensaje)
+                print(f"[{datetime.datetime.now()}] 💾 Guardado en {nombre}")
     except websockets.exceptions.ConnectionClosed as e:
         print(f"[{datetime.datetime.now()}] 🔌 Conexión cerrada: código={e.code}, motivo={e.reason}")
 
@@ -27,7 +28,7 @@ async def health(request):
     return web.Response(text="Servidor WebSocket activo")
 
 async def main():
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5000))  # Render asigna el puerto
     print(f"[{datetime.datetime.now()}] 🚀 Iniciando servidor en 0.0.0.0:{port}")
 
     # Servidor HTTP (para health check)
