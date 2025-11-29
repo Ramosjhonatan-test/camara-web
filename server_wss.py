@@ -1,6 +1,5 @@
 import asyncio
 import websockets
-import ssl
 import os
 import datetime
 
@@ -9,7 +8,7 @@ FRAME_DIR = "frames"
 os.makedirs(FRAME_DIR, exist_ok=True)
 
 async def recibir_video(websocket):
-    print(f"[{datetime.datetime.now()}] Conexión segura desde {websocket.remote_address}")
+    print(f"[{datetime.datetime.now()}] Conexión desde {websocket.remote_address}")
     contador = 0
 
     try:
@@ -26,11 +25,8 @@ async def recibir_video(websocket):
         print(f"[{datetime.datetime.now()}] Conexión cerrada")
 
 async def main():
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ssl_context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
-
-    print("🚀 Servidor WebSocket seguro escuchando en wss://0.0.0.0:5001")
-    async with websockets.serve(recibir_video, "0.0.0.0", 5001, ssl=ssl_context):
+    print("🚀 Servidor WebSocket escuchando en ws://0.0.0.0:5001")
+    async with websockets.serve(recibir_video, "0.0.0.0", 5001):
         await asyncio.Future()
 
 if __name__ == "__main__":
