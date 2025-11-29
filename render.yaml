@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: vision-ia-server
+    env: python
+    buildCommand: ""
+    startCommand: python server_wss.py
+    plan: free
+    autoDeploy: true
