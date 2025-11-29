@@ -53,123 +53,123 @@
   <footer class="mt-10 text-xs text-slate-400 text-center">
     Proyecto de reconocimiento de objetos con IA – HBOC Sacaca
   </footer>
+<script>
+  let stream;
+  let socket;
+  let transmitiendo = false;
+  let intervalId;
 
-  <script>
-    let stream;
-    let socket;
-    let transmitiendo = false;
-    let intervalId;
+  const status = document.getElementById("status");
+  const toast = document.getElementById("toast");
 
-    const status = document.getElementById("status");
-    const toast = document.getElementById("toast");
+  function showToast(msg, type="info") {
+    toast.textContent = msg;
+    toast.classList.remove("hidden");
+    toast.classList.remove("bg-green-600","bg-red-600","bg-blue-600");
+    if(type==="success") toast.classList.add("bg-green-600");
+    else if(type==="error") toast.classList.add("bg-red-600");
+    else toast.classList.add("bg-blue-600");
+    setTimeout(()=>toast.classList.add("hidden"),3000);
+  }
 
-    function showToast(msg, type="info") {
-      toast.textContent = msg;
-      toast.classList.remove("hidden");
-      toast.classList.remove("bg-green-600","bg-red-600","bg-blue-600");
-      if(type==="success") toast.classList.add("bg-green-600");
-      else if(type==="error") toast.classList.add("bg-red-600");
-      else toast.classList.add("bg-blue-600");
-      setTimeout(()=>toast.classList.add("hidden"),3000);
+  // Abrir cámara
+  document.getElementById("btnAbrirCamara").addEventListener("click", async () => {
+    try {
+      const constraints = {
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: false
+      };
+
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = document.getElementById("video");
+      video.srcObject = stream;
+      video.classList.remove("hidden");
+
+      document.getElementById("btnTransmitir").classList.remove("hidden");
+
+      const btn = document.getElementById("btnAbrirCamara");
+      btn.textContent = "✅ Cámara abierta";
+      btn.classList.add("opacity-60");
+      btn.disabled = true;
+
+      status.textContent = "Cámara lista.";
+      showToast("Cámara abierta correctamente","success");
+    } catch (err) {
+      status.textContent = "Error al acceder a la cámara.";
+      console.error(err);
+      showToast("Error al abrir cámara","error");
     }
+  });
 
-    // Abrir cámara
-    document.getElementById("btnAbrirCamara").addEventListener("click", async () => {
-      try {
-        const constraints = {
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: false
-        };
+  // Transmitir video
+  document.getElementById("btnTransmitir").addEventListener("click", async () => {
+    if (transmitiendo) return;
+    transmitiendo = true;
 
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        const video = document.getElementById("video");
-        video.srcObject = stream;
-        video.classList.remove("hidden");
-
-        document.getElementById("btnTransmitir").classList.remove("hidden");
-
-        const btn = document.getElementById("btnAbrirCamara");
-        btn.textContent = "✅ Cámara abierta";
+    try {
+      socket = new WebSocket("wss://vision-ia-server.onrender.com/ws");
+      socket.onopen = () => {
+        status.textContent = "✅ Transmitiendo...";
+        const btn = document.getElementById("btnTransmitir");
         btn.classList.add("opacity-60");
         btn.disabled = true;
+        document.getElementById("btnDetener").classList.remove("hidden");
+        showToast("Transmisión iniciada","success");
+      };
 
-        status.textContent = "Cámara lista.";
-        showToast("Cámara abierta correctamente","success");
-      } catch (err) {
-        status.textContent = "Error al acceder a la cámara.";
-        console.error(err);
-        showToast("Error al abrir cámara","error");
-      }
-    });
+      socket.onerror = (err) => {
+        status.textContent = "❌ Error de conexión al servidor.";
+        console.error("Error en WebSocket:", err);
+        showToast("Error de conexión","error");
+      };
 
-    // Transmitir video
-    document.getElementById("btnTransmitir").addEventListener("click", async () => {
-      if (transmitiendo) return;
-      transmitiendo = true;
+      socket.onclose = () => {
+        status.textContent = "🔌 Conexión cerrada.";
+        detenerTransmision();
+        showToast("Conexión cerrada","info");
+      };
 
-      try {
-        socket = new WebSocket("wss://vision-ia-server.onrender.com/ws");
-        socket.onopen = () => {
-          status.textContent = "✅ Transmitiendo...";
-          const btn = document.getElementById("btnTransmitir");
-          btn.classList.add("opacity-60");
-          btn.disabled = true;
-          document.getElementById("btnDetener").classList.remove("hidden");
-          showToast("Transmisión iniciada","success");
-        };
+      const video = document.getElementById("video");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
-        socket.onerror = (err) => {
-          status.textContent = "❌ Error de conexión al servidor.";
-          console.error("Error en WebSocket:", err);
-          showToast("Error de conexión","error");
-        };
+      intervalId = setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN && socket.bufferedAmount === 0) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        socket.onclose = () => {
-          status.textContent = "🔌 Conexión cerrada.";
-          detenerTransmision();
-          showToast("Conexión cerrada","info");
-        };
-
-        const video = document.getElementById("video");
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        intervalId = setInterval(() => {
-          if (socket.readyState === WebSocket.OPEN && socket.bufferedAmount === 0) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            canvas.toBlob(blob => {
-              if (blob) socket.send(blob);
-            }, "image/jpeg", 0.7);
-          }
-        }, 200); // ~5 fps estable
-      } catch (err) {
-        status.textContent = "Error al transmitir.";
-        console.error(err);
-        showToast("Error al transmitir","error");
-      }
-    });
-
-    // Detener transmisión
-    function detenerTransmision() {
-      if (intervalId) clearInterval(intervalId);
-      if (socket && socket.readyState === WebSocket.OPEN) socket.close();
-      transmitiendo = false;
-      document.getElementById("btnDetener").classList.add("hidden");
-
-      // Reactivar botón transmitir
-      const btnTransmitir = document.getElementById("btnTransmitir");
-      btnTransmitir.disabled = false;
-      btnTransmitir.classList.remove("opacity-60");
-      btnTransmitir.textContent = "📡 Transmitir";
-
-      status.textContent = "Transmisión detenida.";
-      showToast("Transmisión detenida","info");
+          canvas.toBlob(blob => {
+            if (blob) socket.send(blob);
+          }, "image/jpeg", 0.65); // calidad optimizada
+        }
+      }, 120); // ~8 fps más fluido
+    } catch (err) {
+      status.textContent = "Error al transmitir.";
+      console.error(err);
+      showToast("Error al transmitir","error");
     }
+  });
 
-    document.getElementById("btnDetener").addEventListener("click", detenerTransmision);
-  </script>
+  // Detener transmisión
+  function detenerTransmision() {
+    if (intervalId) clearInterval(intervalId);
+    if (socket && socket.readyState === WebSocket.OPEN) socket.close();
+    transmitiendo = false;
+    document.getElementById("btnDetener").classList.add("hidden");
+
+    // Reactivar botón transmitir
+    const btnTransmitir = document.getElementById("btnTransmitir");
+    btnTransmitir.disabled = false;
+    btnTransmitir.classList.remove("opacity-60");
+    btnTransmitir.textContent = "📡 Transmitir";
+
+    status.textContent = "Transmisión detenida.";
+    showToast("Transmisión detenida","info");
+  }
+
+  document.getElementById("btnDetener").addEventListener("click", detenerTransmision);
+</script>
+
 </body>
 </html>
