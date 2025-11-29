@@ -1,34 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>📡 Transmisión en Vivo</title>
-  <!-- Importar Tailwind desde CDN -->
+  <meta charset="UTF-8" />
+  <title>📡 Transmisión en Vivo (HLS)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white min-h-screen flex flex-col">
 
-  <!-- Encabezado -->
   <header class="w-full bg-black/70 border-b-4 border-cyan-400 py-6 text-center shadow-lg">
-    <h1 class="text-3xl md:text-4xl font-bold text-cyan-400 drop-shadow-lg">
-      🎥 Panel de Transmisión en Vivo
-    </h1>
+    <h1 class="text-3xl md:text-4xl font-bold text-cyan-400 drop-shadow-lg">🎥 Panel de Transmisión en Vivo (HLS)</h1>
   </header>
 
-  <!-- Contenedor del video -->
+  <div id="status" class="mt-6 text-center">
+    <span id="offline" class="text-red-500 text-2xl font-bold">🔴 OFFLINE</span>
+    <span id="online" class="hidden text-green-400 text-2xl font-bold">🟢 ONLINE</span>
+  </div>
+
   <main class="flex-1 flex items-center justify-center w-full">
-    <div class="p-4">
-      <img id="video" 
-           src="https://vision-ia-server.onrender.com/stream" 
-           alt="Transmisión en vivo"
-           class="rounded-xl border-4 border-cyan-400 shadow-2xl max-w-4xl w-full transform transition hover:scale-105 hover:shadow-cyan-500/50">
+    <div class="p-4 w-full max-w-5xl">
+      <video id="video" class="hidden w-full rounded-xl border-4 border-cyan-400 shadow-2xl" controls playsinline></video>
     </div>
   </main>
 
-  <!-- Footer -->
   <footer class="w-full bg-black/60 py-4 text-center text-gray-400 text-sm border-t border-gray-700">
-    Powered by <span class="text-cyan-400 font-semibold">Render</span> & <span class="text-cyan-400 font-semibold">GitHub Pages</span> | Proyecto IA Streaming
+    Powered by <span class="text-cyan-400 font-semibold">Render</span> | HLS + FFmpeg
   </footer>
 
+  <script>
+    const video = document.getElementById("video");
+    const offline = document.getElementById("offline");
+    const online = document.getElementById("online");
+    const playlistURL = "https://TU-SERVICIO.onrender.com/hls/index.m3u8"; // ajusta tu dominio
+
+    async function checkAndPlay() {
+      try {
+        const res = await fetch(playlistURL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Playlist no disponible");
+
+        offline.classList.add("hidden");
+        online.classList.remove("hidden");
+        video.classList.remove("hidden");
+
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = playlistURL;
+          await video.play().catch(() => {});
+        } else if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(playlistURL);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, async () => {
+            await video.play().catch(() => {});
+          });
+        } else {
+          video.src = playlistURL;
+          await video.play().catch(() => {});
+        }
+      } catch (e) {
+        video.classList.add("hidden");
+        offline.classList.remove("hidden");
+        online.classList.add("hidden");
+      }
+    }
+
+    setInterval(checkAndPlay, 3000);
+    checkAndPlay();
+  </script>
 </body>
 </html>
