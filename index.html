@@ -87,7 +87,7 @@
       transmitiendo = true;
 
       try {
-        socket = new WebSocket("wss://vision-ia-server.onrender.com");
+        socket = new WebSocket("wss://vision-ia-server.onrender.com/ws");
         socket.onopen = () => {
           console.log("Conectado al servidor WebSocket");
           const btn = document.getElementById("btnTransmitir");
