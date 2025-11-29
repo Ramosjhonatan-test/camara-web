@@ -46,12 +46,20 @@ async def mjpeg_stream(request):
     )
     await response.prepare(request)
 
-    while True:
-        if latest_frame:
-            await response.write(b"--frame\r\n")
-            await response.write(b"Content-Type: image/jpeg\r\n\r\n" + latest_frame + b"\r\n")
-        # Intervalo optimizado: 0.05s ≈ 20 fps
-        await asyncio.sleep(0.05)
+    try:
+        while True:
+            if latest_frame:
+                await response.write(b"--frame\r\n")
+                await response.write(b"Content-Type: image/jpeg\r\n\r\n" + latest_frame + b"\r\n")
+            # Intervalo optimizado: 0.05s ≈ 20 fps
+            await asyncio.sleep(0.05)
+    except (asyncio.CancelledError, ConnectionResetError, web.HTTPException):
+        print(f"[{datetime.datetime.now()}] 🔌 Cliente desconectado del stream")
+    finally:
+        try:
+            await response.write_eof()
+        except Exception:
+            pass
     return response
 
 def main():
