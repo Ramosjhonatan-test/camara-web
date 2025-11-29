@@ -25,8 +25,9 @@ async def recibir_video(websocket):
         print(f"[{datetime.datetime.now()}] Conexión cerrada")
 
 async def main():
-    print("🚀 Servidor WebSocket escuchando en ws://0.0.0.0:5001")
-    async with websockets.serve(recibir_video, "0.0.0.0", 5001):
+    port = int(os.environ.get("PORT", 5000))  # Render asigna el puerto
+    print(f"🚀 Servidor WebSocket escuchando en 0.0.0.0:{port}")
+    async with websockets.serve(recibir_video, "0.0.0.0", port):
         await asyncio.Future()
 
 if __name__ == "__main__":
