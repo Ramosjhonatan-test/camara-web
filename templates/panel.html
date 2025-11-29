@@ -5,27 +5,16 @@
   <title>📡 Transmisión en Vivo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .glass {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    /* Animación para el OFFLINE */
-    .blink {
-      animation: blink 1s infinite;
-    }
-    @keyframes blink {
-      50% { opacity: 0.4; }
-    }
+    .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
+    .blink { animation: blink 1s infinite; } 
+    @keyframes blink { 50% { opacity: 0.4; } }
   </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
 
   <!-- Encabezado -->
   <header class="w-full bg-gradient-to-r from-cyan-600 to-blue-800 py-6 text-center shadow-lg">
-    <h1 class="text-3xl md:text-4xl font-bold text-white drop-shadow-lg tracking-wide">
-      🎥 Panel de Transmisión en Vivo
-    </h1>
+    <h1 class="text-3xl md:text-4xl font-bold text-white drop-shadow-lg tracking-wide">🎥 Panel de Transmisión en Vivo</h1>
     <p class="text-slate-200 mt-2 text-sm">Visualiza la transmisión en tiempo real</p>
   </header>
 
@@ -34,12 +23,12 @@
     <div class="glass rounded-xl overflow-hidden border-2 border-cyan-400 shadow-2xl w-full max-w-md p-4 text-center">
       <!-- Imagen MJPEG -->
       <img id="video"
-           src="https://vision-ia-server.onrender.com/stream"
+           src="{{ stream_url }}"
            alt="Transmisión en vivo"
-           class="rounded-xl border-4 border-cyan-400 shadow-lg w-full max-h-[400px] bg-black hidden">
+           class="rounded-xl border-4 border-cyan-400 shadow-lg w-full max-h-[400px] bg-black">
 
       <!-- Mensaje OFFLINE -->
-      <div id="offlineMsg" class="text-red-500 text-xl font-bold mt-4 blink">
+      <div id="offlineMsg" class="text-red-500 text-xl font-bold mt-4 blink hidden">
         🔴 OFFLINE – No hay transmisión disponible
       </div>
     </div>
@@ -70,24 +59,22 @@
 
     function checkStream() {
       const testImg = new Image();
-      testImg.src = video.src + "?t=" + Date.now(); // evitar cache
-      let timer = setTimeout(() => {
-        video.classList.add("hidden");
-        offlineMsg.classList.remove("hidden");
-        showToast("Transmisión OFFLINE","error");
-      }, 2000);
+      testImg.src = video.src + "?t=" + Date.now();
 
       testImg.onload = () => {
-        clearTimeout(timer);
-        video.classList.remove("hidden");
-        offlineMsg.classList.add("hidden");
-        showToast("Transmisión en línea","success");
+        if (video.classList.contains("hidden")) {
+          video.classList.remove("hidden");
+          offlineMsg.classList.add("hidden");
+          showToast("Transmisión en línea","success");
+        }
       };
+
       testImg.onerror = () => {
-        clearTimeout(timer);
-        video.classList.add("hidden");
-        offlineMsg.classList.remove("hidden");
-        showToast("Error al cargar stream","error");
+        if (!video.classList.contains("hidden")) {
+          video.classList.add("hidden");
+          offlineMsg.classList.remove("hidden");
+          showToast("Transmisión OFFLINE","error");
+        }
       };
     }
 
