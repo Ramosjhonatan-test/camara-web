@@ -39,8 +39,11 @@
       } else if (Hls.isSupported()) {
         // Chrome, Firefox, Edge con hls.js
         const hls = new Hls({
-          liveSyncDurationCount: 3,
-          liveMaxLatencyDurationCount: 6,
+          liveSyncDurationCount: 2,        // intenta reproducir a 2 segmentos del final (~2s)
+          liveMaxLatencyDurationCount: 4,  // máximo 4 segmentos de retraso (~4s)
+          maxLiveSyncPlaybackRate: 1.5,    // acelera un poco si se queda atrás
+          enableWorker: true,              // usa WebWorker para mejor rendimiento
+          lowLatencyMode: true             // activa modo baja latencia
         });
         hls.loadSource(playlistURL);
         hls.attachMedia(video);
