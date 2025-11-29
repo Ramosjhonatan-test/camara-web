@@ -2,24 +2,33 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel de Transmisión</title>
+  <title>Panel de Transmisión en Vivo</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; text-align: center; }
-    #video { max-width: 90%; border: 3px solid #444; border-radius: 8px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #222;
+      padding: 15px;
+      font-size: 1.5em;
+      border-bottom: 2px solid #444;
+    }
+    #video {
+      max-width: 95%;
+      margin-top: 20px;
+      border: 3px solid #444;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
+    }
   </style>
 </head>
 <body>
-  <h1>Transmisión en vivo</h1>
-  <img id="video" src="https://vision-ia-server.onrender.com/frames/frame_0001.jpg" alt="Transmisión">
-
-  <script>
-    let contador = 1;
-    setInterval(() => {
-      contador++;
-      document.getElementById("video").src =
-        "https://vision-ia-server.onrender.com/frames/frame_" +
-        String(contador).padStart(4, '0') + ".jpg?" + new Date().getTime();
-    }, 500); // refresca cada 0.5 segundos
-  </script>
+  <header>📡 Panel de Transmisión en Vivo</header>
+  <img id="video" src="https://vision-ia-server.onrender.com/stream" alt="Transmisión en vivo">
 </body>
 </html>
