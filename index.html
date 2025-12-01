@@ -6,6 +6,8 @@
   <title>Visión IA en Vivo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Heroicons -->
+  <script src="https://unpkg.com/feather-icons"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     .glass {
@@ -13,47 +15,76 @@
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
+    #toast {
+      transition: all 0.4s ease;
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    /* Animaciones */
+    .fade-in {
+      animation: fadeInUp 1s ease forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white min-h-screen flex flex-col items-center justify-start p-6">
 
   <!-- Header -->
-  <header class="text-center mb-8">
+  <header class="text-center mb-8 fade-in">
     <h1 class="text-4xl font-bold text-cyan-400 drop-shadow-lg">Visión IA en Vivo</h1>
     <p class="text-sm text-slate-300 mt-2">Cámara trasera y transmisión en tiempo real</p>
   </header>
 
   <!-- Video Container -->
-  <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md">
+  <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md fade-in">
     <video id="video" autoplay playsinline class="w-full max-h-[400px] object-contain hidden"></video>
   </div>
 
   <!-- Estado -->
-  <div id="status" class="mt-4 text-center text-sm text-slate-300"></div>
+  <div id="status" class="mt-4 text-center text-sm text-slate-300 fade-in"></div>
 
   <!-- Buttons -->
-  <div class="mt-8 flex flex-col gap-4 w-full max-w-md">
-    <button id="btnAbrirCamara" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
-      📷 Abrir cámara
+  <div class="mt-8 flex flex-col gap-4 w-full max-w-md fade-in">
+    <button id="btnAbrirCamara" class="pulse flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
+      <i data-feather="camera"></i> Abrir cámara
     </button>
 
-    <button id="btnTransmitir" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
-      📡 Transmitir
+    <button id="btnTransmitir" class="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
+      <i data-feather="cast"></i> Transmitir
     </button>
 
-    <button id="btnDetener" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
-      ⏹ Detener
+    <button id="btnDetener" class="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
+      <i data-feather="stop-circle"></i> Detener
     </button>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 hidden bg-black/80 text-white px-4 py-2 rounded-lg shadow-lg"></div>
+  <!-- Toast Notification (arriba) -->
+  <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 hidden bg-black/80 text-white px-6 py-3 rounded-lg shadow-lg text-sm font-semibold"></div>
 
   <!-- Footer -->
-  <footer class="mt-10 text-xs text-slate-400 text-center">
-    Proyecto de reconocimiento de objetos con IA – HBOC Sacaca
+  <footer class="mt-10 text-xs text-slate-400 text-center fade-in">
+    Desarrollado por Jhon JR
   </footer>
+
 <script>
+  feather.replace(); // Renderiza los iconos
+
   let stream;
   let socket;
   let transmitiendo = false;
@@ -64,12 +95,21 @@
 
   function showToast(msg, type="info") {
     toast.textContent = msg;
-    toast.classList.remove("hidden");
-    toast.classList.remove("bg-green-600","bg-red-600","bg-blue-600");
+    toast.classList.remove("hidden","bg-green-600","bg-red-600","bg-blue-600","show");
     if(type==="success") toast.classList.add("bg-green-600");
     else if(type==="error") toast.classList.add("bg-red-600");
     else toast.classList.add("bg-blue-600");
-    setTimeout(()=>toast.classList.add("hidden"),3000);
+
+    toast.classList.add("show");
+
+    // Sonido opcional
+    const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+    audio.play();
+
+    setTimeout(()=>{
+      toast.classList.remove("show");
+      setTimeout(()=>toast.classList.add("hidden"),300);
+    },3000);
   }
 
   // Abrir cámara
@@ -88,7 +128,9 @@
       document.getElementById("btnTransmitir").classList.remove("hidden");
 
       const btn = document.getElementById("btnAbrirCamara");
-      btn.textContent = "✅ Cámara abierta";
+      btn.innerHTML = '<i data-feather="check-circle"></i> Cámara abierta';
+      feather.replace();
+      btn.classList.remove("pulse");
       btn.classList.add("opacity-60");
       btn.disabled = true;
 
@@ -100,75 +142,6 @@
       showToast("Error al abrir cámara","error");
     }
   });
-
-  // Transmitir video
-  document.getElementById("btnTransmitir").addEventListener("click", async () => {
-    if (transmitiendo) return;
-    transmitiendo = true;
-
-    try {
-      socket = new WebSocket("wss://vision-ia-server.onrender.com/ws");
-      socket.onopen = () => {
-        status.textContent = "✅ Transmitiendo...";
-        const btn = document.getElementById("btnTransmitir");
-        btn.classList.add("opacity-60");
-        btn.disabled = true;
-        document.getElementById("btnDetener").classList.remove("hidden");
-        showToast("Transmisión iniciada","success");
-      };
-
-      socket.onerror = (err) => {
-        status.textContent = "❌ Error de conexión al servidor.";
-        console.error("Error en WebSocket:", err);
-        showToast("Error de conexión","error");
-      };
-
-      socket.onclose = () => {
-        status.textContent = "🔌 Conexión cerrada.";
-        detenerTransmision();
-        showToast("Conexión cerrada","info");
-      };
-
-      const video = document.getElementById("video");
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      intervalId = setInterval(() => {
-        if (socket.readyState === WebSocket.OPEN && socket.bufferedAmount === 0) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-          canvas.toBlob(blob => {
-            if (blob) socket.send(blob);
-          }, "image/jpeg", 0.65); // calidad optimizada
-        }
-      }, 120); // ~8 fps más fluido
-    } catch (err) {
-      status.textContent = "Error al transmitir.";
-      console.error(err);
-      showToast("Error al transmitir","error");
-    }
-  });
-
-  // Detener transmisión
-  function detenerTransmision() {
-    if (intervalId) clearInterval(intervalId);
-    if (socket && socket.readyState === WebSocket.OPEN) socket.close();
-    transmitiendo = false;
-    document.getElementById("btnDetener").classList.add("hidden");
-
-    // Reactivar botón transmitir
-    const btnTransmitir = document.getElementById("btnTransmitir");
-    btnTransmitir.disabled = false;
-    btnTransmitir.classList.remove("opacity-60");
-    btnTransmitir.textContent = "📡 Transmitir";
-
-    status.textContent = "Transmisión detenida.";
-    showToast("Transmisión detenida","info");
-  }
-
-  document.getElementById("btnDetener").addEventListener("click", detenerTransmision);
 </script>
 
 </body>
