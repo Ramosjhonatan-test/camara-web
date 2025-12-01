@@ -42,26 +42,7 @@
       70% { box-shadow: 0 0 0 15px rgba(34,197,94,0); }
       100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
     }
-    /* Efecto "Transmitiendo..." en el botón: shimmer + spinner */
-    .is-transmitting {
-      position: relative;
-      overflow: hidden;
-      cursor: not-allowed;
-    }
-    .is-transmitting::after {
-      content: "";
-      position: absolute;
-      top: 0; left: -150%;
-      width: 50%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      animation: shimmer 1.6s infinite;
-    }
-    @keyframes shimmer {
-      0% { left: -150%; }
-      50% { left: 150%; }
-      100% { left: 150%; }
-    }
+    /* Spinner para transmitir */
     .spinner {
       width: 16px;
       height: 16px;
@@ -73,26 +54,6 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    /* Ripple en clic para botones */
-    .btn {
-      position: relative;
-      overflow: hidden;
-    }
-    .btn:active::after {
-      content: "";
-      position: absolute;
-      width: 200%;
-      height: 200%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(255,255,255,0.25) 10%, rgba(255,255,255,0) 60%);
-      animation: ripple 0.5s ease-out;
-    }
-    @keyframes ripple {
-      from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-      to   { transform: translate(-50%, -50%) scale(1);   opacity: 0; }
-    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white min-h-screen flex flex-col items-center justify-start p-6">
@@ -103,7 +64,7 @@
     <p class="text-sm text-slate-300 mt-2">Cámara trasera y transmisión en tiempo real</p>
   </header>
 
-  <!-- Video Container (no se toca el tamaño) -->
+  <!-- Video Container -->
   <div class="glass rounded-xl overflow-hidden border border-cyan-500 shadow-xl w-full max-w-md fade-in">
     <video id="video" autoplay playsinline class="w-full max-h-[400px] object-contain hidden"></video>
   </div>
@@ -113,15 +74,15 @@
 
   <!-- Buttons -->
   <div class="mt-8 flex flex-col gap-4 w-full max-w-md fade-in">
-    <button id="btnAbrirCamara" class="btn pulse flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
+    <button id="btnAbrirCamara" class="pulse flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
       <i data-feather="camera"></i> Abrir cámara
     </button>
 
-    <button id="btnTransmitir" class="btn flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
+    <button id="btnTransmitir" class="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
       <i data-feather="cast"></i> Transmitir
     </button>
 
-    <button id="btnDetener" class="btn flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
+    <button id="btnDetener" class="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 hidden">
       <i data-feather="stop-circle"></i> Detener
     </button>
   </div>
@@ -135,7 +96,7 @@
   </footer>
 
 <script>
-  feather.replace(); // Renderiza los iconos
+  feather.replace();
 
   let stream;
   let socket;
@@ -157,9 +118,9 @@
 
     toast.classList.add("show");
 
-    // Sonido opcional
-    // const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
-    // audio.play();
+    // Sonido de notificación
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    audio.play();
 
     setTimeout(()=>{
       toast.classList.remove("show");
@@ -167,7 +128,6 @@
     },3000);
   }
 
-  // Abrir cámara
   btnAbrirCamara.addEventListener("click", async () => {
     try {
       const constraints = {
@@ -197,7 +157,6 @@
     }
   });
 
-  // Transmitir video
   btnTransmitir.addEventListener("click", async () => {
     if (transmitiendo) return;
     transmitiendo = true;
@@ -207,8 +166,7 @@
 
       socket.onopen = () => {
         status.textContent = "Transmitiendo...";
-        // Estado visual del botón: shimmer + spinner + texto
-        btnTransmitir.classList.add("opacity-60","is-transmitting");
+        btnTransmitir.classList.add("opacity-60");
         btnTransmitir.disabled = true;
         btnTransmitir.innerHTML = '<span class="spinner"></span> Enviando frames...';
         btnDetener.classList.remove("hidden");
@@ -219,9 +177,8 @@
         status.textContent = "Error de conexión al servidor.";
         console.error("Error en WebSocket:", err);
         showToast("Error de conexión","error");
-        // Revertir estado visual si falla
         btnTransmitir.disabled = false;
-        btnTransmitir.classList.remove("opacity-60","is-transmitting");
+        btnTransmitir.classList.remove("opacity-60");
         btnTransmitir.innerHTML = '<i data-feather="cast"></i> Transmitir';
         feather.replace();
         transmitiendo = false;
@@ -252,9 +209,8 @@
       status.textContent = "Error al transmitir.";
       console.error(err);
       showToast("Error al transmitir","error");
-      // Revertir estado visual si falla
       btnTransmitir.disabled = false;
-      btnTransmitir.classList.remove("opacity-60","is-transmitting");
+      btnTransmitir.classList.remove("opacity-60");
       btnTransmitir.innerHTML = '<i data-feather="cast"></i> Transmitir';
       feather.replace();
       transmitiendo = false;
@@ -269,7 +225,7 @@
     btnDetener.classList.add("hidden");
 
     btnTransmitir.disabled = false;
-    btnTransmitir.classList.remove("opacity-60","is-transmitting");
+    btnTransmitir.classList.remove("opacity-60");
     btnTransmitir.innerHTML = '<i data-feather="cast"></i> Transmitir';
     feather.replace();
 
